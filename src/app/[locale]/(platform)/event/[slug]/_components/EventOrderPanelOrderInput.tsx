@@ -22,6 +22,7 @@ interface EventOrderPanelOrderInputProps {
   amount: string
   amountNumber: number
   availableShares: number
+  maxBuyAmount: number
   availableYesTokenShares: number
   availableNoTokenShares: number
   availableYesPositionShares: number
@@ -79,6 +80,7 @@ export default function EventOrderPanelOrderInput({
   amount,
   amountNumber,
   availableShares,
+  maxBuyAmount,
   availableYesTokenShares,
   availableNoTokenShares,
   availableYesPositionShares,
@@ -174,6 +176,7 @@ export default function EventOrderPanelOrderInput({
                 amountNumber={amountNumber}
                 availableShares={availableShares}
                 balance={balance}
+                maxBuyAmount={maxBuyAmount}
                 isBalanceLoading={isBalanceLoading}
                 inputRef={inputRef}
                 onAmountChange={onAmountChange}

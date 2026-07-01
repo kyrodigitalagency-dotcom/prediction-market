@@ -18,6 +18,27 @@ export type OrderValidationError
     | 'INSUFFICIENT_SHARES'
 
 export const MIN_LIMIT_ORDER_SHARES = 0.01
+const BUY_ORDER_FUNDING_BUFFER_BPS = 200
+
+const BPS_DENOMINATOR = 10_000
+
+function normalizeFundingValue(value: number) {
+  return Number.isFinite(value) ? Math.max(0, value) : 0
+}
+
+export function calculateBuyOrderFundingRequirement(amount: number) {
+  const normalizedAmount = normalizeFundingValue(amount)
+  return normalizedAmount * (BPS_DENOMINATOR + BUY_ORDER_FUNDING_BUFFER_BPS) / BPS_DENOMINATOR
+}
+
+export function calculateMaxBuyOrderAmount(availableBalance: number) {
+  const normalizedBalance = normalizeFundingValue(availableBalance)
+  if (normalizedBalance <= 0) {
+    return 0
+  }
+
+  return normalizedBalance * BPS_DENOMINATOR / (BPS_DENOMINATOR + BUY_ORDER_FUNDING_BUFFER_BPS)
+}
 
 interface ValidateOrderArgs {
   isLoading: boolean
@@ -111,7 +132,8 @@ export function validateOrder({
 
     if (side === ORDER_SIDE.BUY) {
       const estimatedCost = (limitPriceValue / 100) * limitSharesValue
-      if (!Number.isFinite(estimatedCost) || estimatedCost > availableBalance) {
+      const fundingRequired = calculateBuyOrderFundingRequirement(estimatedCost)
+      if (!Number.isFinite(estimatedCost) || fundingRequired > availableBalance) {
         return { ok: false, reason: 'INSUFFICIENT_BALANCE' }
       }
     }
@@ -130,7 +152,10 @@ export function validateOrder({
     return { ok: false, reason: 'MARKET_MIN_AMOUNT' }
   }
 
-  if (side === ORDER_SIDE.BUY && amountNumber > availableBalance) {
+  const marketBuyFundingRequired = side === ORDER_SIDE.BUY
+    ? calculateBuyOrderFundingRequirement(amountNumber)
+    : 0
+  if (side === ORDER_SIDE.BUY && marketBuyFundingRequired > availableBalance) {
     return { ok: false, reason: 'INSUFFICIENT_BALANCE' }
   }
 
