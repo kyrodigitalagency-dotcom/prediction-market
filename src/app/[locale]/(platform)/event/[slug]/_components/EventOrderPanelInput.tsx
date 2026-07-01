@@ -22,7 +22,6 @@ interface EventOrderPanelInputProps {
   amountNumber: number
   availableShares: number
   balance: BalanceSummary
-  maxBuyAmount?: number
   isBalanceLoading?: boolean
   inputRef: RefObject<HTMLInputElement | null>
   onAmountChange: (value: string) => void
@@ -31,14 +30,6 @@ interface EventOrderPanelInputProps {
 
 const BUY_CHIPS = ['+$1', '+$5', '+$10', '+$100']
 
-function normalizeMaxBuyAmount(value: number | undefined) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    return null
-  }
-
-  return Math.max(0, value)
-}
-
 export default function EventOrderPanelInput({
   isMobile,
   side,
@@ -46,7 +37,6 @@ export default function EventOrderPanelInput({
   amountNumber,
   availableShares,
   balance,
-  maxBuyAmount,
   isBalanceLoading = false,
   inputRef,
   onAmountChange,
@@ -54,7 +44,6 @@ export default function EventOrderPanelInput({
 }: EventOrderPanelInputProps) {
   const t = useExtracted()
   const areValuesHidden = usePortfolioValueVisibility(state => state.isHidden)
-  const normalizedMaxBuyAmount = normalizeMaxBuyAmount(maxBuyAmount)
 
   function focusInput() {
     inputRef?.current?.focus()
@@ -99,8 +88,7 @@ export default function EventOrderPanelInput({
       return
     }
 
-    const maxBuyValue = normalizedMaxBuyAmount ?? MAX_AMOUNT_INPUT
-    const limitedValue = Math.min(nextValue, maxBuyValue, MAX_AMOUNT_INPUT)
+    const limitedValue = Math.min(nextValue, MAX_AMOUNT_INPUT)
     onAmountChange(formatAmountInputValue(limitedValue))
   }
 
@@ -114,9 +102,7 @@ export default function EventOrderPanelInput({
       return
     }
 
-    const maxBalance = normalizedMaxBuyAmount !== null
-      ? normalizedMaxBuyAmount
-      : Number.isFinite(balance.raw) ? balance.raw : 0
+    const maxBalance = Number.isFinite(balance.raw) ? balance.raw : 0
     const limitedBalance = Math.min(maxBalance, MAX_AMOUNT_INPUT)
     onAmountChange(formatAmountInputValue(limitedBalance, { roundingMode: 'floor' }))
     focusInput()
@@ -163,8 +149,7 @@ export default function EventOrderPanelInput({
           const chipValue = Number.parseInt(chip.substring(2), 10)
           const newValue = amountNumber + chipValue
 
-          const maxBuyValue = normalizedMaxBuyAmount ?? MAX_AMOUNT_INPUT
-          const limitedValue = Math.min(newValue, maxBuyValue, MAX_AMOUNT_INPUT)
+          const limitedValue = Math.min(newValue, MAX_AMOUNT_INPUT)
           onAmountChange(formatAmountInputValue(limitedValue))
           focusInput()
         }}
@@ -304,10 +289,7 @@ export default function EventOrderPanelInput({
               onAmountChange(formatAmountInputValue(availableShares, { roundingMode: 'floor' }))
             }
             else {
-              const maxBalance = normalizedMaxBuyAmount !== null
-                ? normalizedMaxBuyAmount
-                : balance.raw
-              const limitedBalance = Math.min(maxBalance, MAX_AMOUNT_INPUT)
+              const limitedBalance = Math.min(balance.raw, MAX_AMOUNT_INPUT)
               onAmountChange(formatAmountInputValue(limitedBalance, { roundingMode: 'floor' }))
             }
             focusInput()

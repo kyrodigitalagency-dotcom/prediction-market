@@ -31,15 +31,6 @@ export function calculateBuyOrderFundingRequirement(amount: number) {
   return normalizedAmount * (BPS_DENOMINATOR + BUY_ORDER_FUNDING_BUFFER_BPS) / BPS_DENOMINATOR
 }
 
-export function calculateMaxBuyOrderAmount(availableBalance: number) {
-  const normalizedBalance = normalizeFundingValue(availableBalance)
-  if (normalizedBalance <= 0) {
-    return 0
-  }
-
-  return normalizedBalance * BPS_DENOMINATOR / (BPS_DENOMINATOR + BUY_ORDER_FUNDING_BUFFER_BPS)
-}
-
 interface ValidateOrderArgs {
   isLoading: boolean
   isConnected: boolean
@@ -152,10 +143,7 @@ export function validateOrder({
     return { ok: false, reason: 'MARKET_MIN_AMOUNT' }
   }
 
-  const marketBuyFundingRequired = side === ORDER_SIDE.BUY
-    ? calculateBuyOrderFundingRequirement(amountNumber)
-    : 0
-  if (side === ORDER_SIDE.BUY && marketBuyFundingRequired > availableBalance) {
+  if (side === ORDER_SIDE.BUY && amountNumber > availableBalance) {
     return { ok: false, reason: 'INSUFFICIENT_BALANCE' }
   }
 

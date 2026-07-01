@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { ORDER_SIDE } from '@/lib/constants'
 import {
   calculateBuyOrderFundingRequirement,
-  calculateMaxBuyOrderAmount,
   MIN_LIMIT_ORDER_SHARES,
   validateOrder,
 } from '@/lib/orders/validation'
@@ -30,7 +29,6 @@ function baseArgs(overrides: Partial<Parameters<typeof validateOrder>[0]> = {}) 
 describe('validateOrder', () => {
   it('calculates buy funding requirements with the trading fee buffer', () => {
     expect(calculateBuyOrderFundingRequirement(9.98)).toBeCloseTo(10.1796)
-    expect(calculateMaxBuyOrderAmount(9.98)).toBeCloseTo(9.7843137)
   })
 
   it('rejects when loading or disconnected', () => {
@@ -49,9 +47,15 @@ describe('validateOrder', () => {
 
     expect(validateOrder(baseArgs({
       side: ORDER_SIDE.BUY,
-      amountNumber: 100,
+      amountNumber: 100.01,
       availableBalance: 100,
     }))).toEqual({ ok: false, reason: 'INSUFFICIENT_BALANCE' })
+
+    expect(validateOrder(baseArgs({
+      side: ORDER_SIDE.BUY,
+      amountNumber: 100,
+      availableBalance: 100,
+    }))).toEqual({ ok: true })
 
     expect(validateOrder(baseArgs({
       side: ORDER_SIDE.SELL,

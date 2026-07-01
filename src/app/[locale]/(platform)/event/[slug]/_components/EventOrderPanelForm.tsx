@@ -71,8 +71,6 @@ import { buildOrderPayload, submitOrder } from '@/lib/orders'
 import { resolveOrderExpirationTimestamp } from '@/lib/orders/expiration'
 import { signOrderPayload } from '@/lib/orders/signing'
 import {
-  calculateBuyOrderFundingRequirement,
-  calculateMaxBuyOrderAmount,
   MIN_LIMIT_ORDER_SHARES,
   validateOrder,
 } from '@/lib/orders/validation'
@@ -967,7 +965,6 @@ export default function EventOrderPanelForm({
   const claimedConditionIds = claimedConditionIdsByEvent[event.id] ?? {}
 
   const availableBalanceForOrders = Math.max(0, balance.raw)
-  const maxBuyAmountForOrders = calculateMaxBuyOrderAmount(availableBalanceForOrders)
   const formattedBalanceText = Number.isFinite(balance.raw)
     ? balance.raw.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     : '0.00'
@@ -1079,7 +1076,7 @@ export default function EventOrderPanelForm({
   const shouldShowDepositCta = isInteractiveWalletReady
     && state.side === ORDER_SIDE.BUY
     && state.type === ORDER_TYPE.MARKET
-    && calculateBuyOrderFundingRequirement(Math.max(effectiveMarketBuyCost, amountNumber)) > availableBalanceForOrders
+    && Math.max(effectiveMarketBuyCost, amountNumber) > availableBalanceForOrders
 
   const avgBuyPriceDollars = typeof currentBuyPriceCents === 'number' && Number.isFinite(currentBuyPriceCents)
     ? currentBuyPriceCents / 100
@@ -1885,7 +1882,6 @@ export default function EventOrderPanelForm({
                   amount={state.amount}
                   amountNumber={amountNumber}
                   availableShares={selectedShares}
-                  maxBuyAmount={maxBuyAmountForOrders}
                   availableYesTokenShares={availableYesTokenShares}
                   availableNoTokenShares={availableNoTokenShares}
                   availableYesPositionShares={availableYesPositionShares}
